@@ -2,14 +2,29 @@ import React, { useState } from 'react';
 import { useTasks } from '../context/Taskcontent';
 
 const TaskDashboard: React.FC = () => {
-  const { tasks, deleteTask, createTask } = useTasks();
+  const { tasks, deleteTask, createTask, updateTask } = useTasks();
   const [title, setTitle] = useState('');
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editedTitle, setEditedTitle] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (title.trim()) {
       createTask({ title });
       setTitle('');
+    }
+  };
+
+  const startEdit = (id: number, currentTitle: string) => {
+    setEditingId(id);
+    setEditedTitle(currentTitle);
+  };
+
+  const saveEdit = (id: number) => {
+    if (editedTitle.trim()) {
+      updateTask(id, editedTitle);
+      setEditingId(null);
+      setEditedTitle('');
     }
   };
 
@@ -54,13 +69,53 @@ const TaskDashboard: React.FC = () => {
                     className="p-3 bg-light rounded border d-flex justify-content-between align-items-center shadow-sm"
                     style={{ transition: '0.3s ease' }}
                   >
-                    <span className="fw-semibold">{task.title}</span>
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => deleteTask(task.id)}
-                    >
-                      <i className="bi bi-trash"></i> Delete
-                    </button>
+                    {editingId === task.id ? (
+                      <input
+                        className="form-control me-3"
+                        value={editedTitle}
+                        onChange={(e) => setEditedTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveEdit(task.id);
+                          if (e.key === 'Escape') setEditingId(null);
+                        }}
+                      />
+                    ) : (
+                      <span className="fw-semibold">{task.title}</span>
+                    )}
+
+                    <div className="btn-group btn-group-sm">
+                      {editingId === task.id ? (
+                        <>
+                          <button
+                            className="btn btn-success"
+                            onClick={() => saveEdit(task.id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="btn btn-secondary"
+                            onClick={() => setEditingId(null)}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className="btn btn-outline-primary"
+                            onClick={() => startEdit(task.id, task.title)}
+                          >
+                            <i className="bi bi-pencil"></i> Edit
+                          </button>
+                          <button
+                            className="btn btn-outline-danger"
+                            onClick={() => deleteTask(task.id)}
+                          >
+                            <i className="bi bi-trash"></i> Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

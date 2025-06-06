@@ -12,6 +12,7 @@ interface TaskContextType {
   tasks: Task[];
   createTask: (task: { title: string }) => void;
   deleteTask: (id: number) => void;
+  updateTask: (id: number, newTitle: string) => void;
 }
 
 // Create context
@@ -32,24 +33,27 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const createTask = ({ title }: { title: string }) => {
     const newTask: Task = {
-      id: Date.now(), // or use uuid()
+      id: Date.now(), // or use uuid for unique IDs
       title,
     };
     setTasks((prev) => [...prev, newTask]);
-    console.log(`%c[Task Added] ${title}`, 'color: green; font-weight: bold;');
   };
 
   const deleteTask = (id: number) => {
-    const deletedTask = tasks.find((task) => task.id === id);
     setTasks((prev) => prev.filter((task) => task.id !== id));
-    console.log(`%c[Task Deleted] ${deletedTask?.title}`, 'color: red; font-weight: bold;');
+  };
+
+  const updateTask = (id: number, newTitle: string) => {
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id ? { ...task, title: newTitle } : task
+      )
+    );
   };
 
   return (
-    <div className="p-3 bg-light border rounded shadow-sm">
-      <TaskContext.Provider value={{ tasks, createTask, deleteTask }}>
-        {children}
-      </TaskContext.Provider>
-    </div>
+    <TaskContext.Provider value={{ tasks, createTask, deleteTask, updateTask }}>
+      {children}
+    </TaskContext.Provider>
   );
 };
